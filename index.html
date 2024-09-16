@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Selector App</title>
+
+    <style>
+        body {
+           
+            background-image: url('cat.jpg'); 
+            background-size: cover; 
+            background-position: center; 
+            font-family: Arial, sans-serif; 
+            color: rgb(124, 124, 122); 
+
+        }
+    </style>
+</head>
+<body>
+    <script>
+
+        function all_Cat(){
+
+           const Url ="https://api.thecatapi.com/v1/breeds";
+           const x =document.getElementById("content")
+
+           fetch(Url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Something went wrong.');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        Object.values(data).forEach(value => {
+                            const lineBreak = document.createElement('br');
+                            x.appendChild(document.createTextNode(value.name));
+                            x.appendChild(lineBreak);
+                            
+                        });
+                        
+                    })
+                    .catch(error => {
+                        console.error('Error fetching JSON:', error);
+                    });
+
+
+        }
+
+        function health_Issue(){
+            const issueNumber = parseInt(document.getElementById("healthIssue").value);
+            const Url = "https://api.thecatapi.com/v1/breeds";
+            const x = document.getElementById("content");
+            x.innerHTML = "";
+
+            fetch(Url)
+                .then(response => response.json())
+                .then(data => {
+                    const filteredCats = data.filter(cat => cat.health_issues == issueNumber);
+                    if (filteredCats.length > 0) {
+                        filteredCats.forEach(cat => {
+                            x.appendChild(document.createTextNode(cat.name));
+                            x.appendChild(document.createElement('br'));
+                        });
+                    } else {
+                        x.appendChild(document.createTextNode(`No cats found with health issue #${issueNumber}.`));
+                    }
+                })
+                
+        }
+
+
+        function cat_Weight() {
+            const Url = "https://api.thecatapi.com/v1/breeds";
+            const x = document.getElementById("content");
+            x.innerHTML = ""; 
+
+            fetch(Url)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(cat => {
+                        const weight = useMetric ? convert_ToMetric(cat.weight.imperial) : cat.weight.imperial;
+                        x.appendChild(document.createTextNode(`${cat.name}: ${weight} ${useMetric ? 'kg' : 'lbs'}`));
+                        x.appendChild(document.createElement('br'));
+                    });
+                })
+                .catch(error => console.error('Error fetching cat data:', error));
+        }
+
+    
+        function convert_ToMetric(weightRange) {
+            const [minWeight, maxWeight] = weightRange.split(" - ").map(Number);
+            const minWeightKg = (minWeight * 0.453592).toFixed(2);
+            const maxWeightKg = (maxWeight * 0.453592).toFixed(2);
+            return `${minWeightKg} - ${maxWeightKg}`;
+        }
+
+    
+        function change_WeightUnit(unit) {
+            useMetric = (unit === 'metric');
+        }
+       
+        function intelligence_Friendly() {
+            const Url = "https://api.thecatapi.com/v1/breeds";
+            const x = document.getElementById("content");
+            x.innerHTML = ""; 
+
+            fetch(Url)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(cat => {
+                        const intelligence = cat.intelligence;
+                        const friendly = cat.child_friendly;
+                        x.appendChild(document.createTextNode(`${cat.name}: I: ${intelligence}, F: ${friendly}`));
+                        x.appendChild(document.createElement('br'));
+                    });
+                })
+                .catch(error => console.error('Error fetching cat data:', error));
+        }
+
+        function aver_Intelligence() {
+            const Url = "https://api.thecatapi.com/v1/breeds";
+            const x = document.getElementById("content");
+            x.innerHTML = ""; 
+
+            fetch(Url)
+                .then(response => response.json())
+                .then(data => {
+                    const totalCats = data.length;
+                    const totalIntelligence = data.reduce((sum, cat) => sum + cat.intelligence, 0);
+                    const avgIntelligence = (totalIntelligence / totalCats).toFixed(2);
+
+                    x.appendChild(document.createTextNode(`Average Intelligence of all cats: ${avgIntelligence}`));
+                })
+                .catch(error => console.error('Error fetching cat data:', error));
+        }
+
+        function aver_IntelligenceChildFriendly() {
+            const Url = "https://api.thecatapi.com/v1/breeds";
+            const x = document.getElementById("content");
+            x.innerHTML = "";
+
+            fetch(Url)
+                .then(response => response.json())
+                .then(data => {
+                   
+                    const childFriendlyCats = data.filter(cat => cat.child_friendly >= 3);
+                    const totalCats = childFriendlyCats.length;
+                    
+                    if (totalCats > 0) {
+                        const totalIntelligence = childFriendlyCats.reduce((sum, cat) => sum + cat.intelligence, 0);
+                        const avgIntelligence = (totalIntelligence / totalCats).toFixed(2);
+
+                        x.appendChild(document.createTextNode(`Average Intelligence of child-friendly cats: ${avgIntelligence}`));
+                    } else {
+                        x.appendChild(document.createTextNode("No child-friendly cats found."));
+                    }
+                })
+                .catch(error => console.error('Error fetching cat data:', error));
+        }
+
+
+    </script>
+   
+    <button onclick="all_Cat()">All Cat Names</button><br><br>
+    <button onclick="health_Issue()">Health Issues</button>
+    <input type="number" id="healthIssue" name="healthIssue" placeholder="Enter a number"> <br><br>
+
+    <div>
+        <label for="imperial">Imperial</label>
+        <input type="radio" id="imperial" name="weightUnit" value="imperial" checked onclick="change_WeightUnit('imperial')">
+        <label for="metric">Metric</label>
+        <input type="radio" id="metric" name="weightUnit" value="metric" onclick="change_WeightUnit('metric')">
+        <button onclick="cat_Weight()">Weight</button>
+    </div> <br>
+    <button onclick="intelligence_Friendly()">Intelligence - Friendly</button><br><br>
+    <button onclick="aver_Intelligence()">Average Intelligence</button><br><br>
+    <button onclick="aver_IntelligenceChildFriendly()">Average Intelligence for Child Friendly</button>
+
+    
+
+    <p id="content"></p>
+
+    
+</body>
+</html>
